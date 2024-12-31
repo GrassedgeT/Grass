@@ -1,0 +1,23 @@
+unstable_features = true
+
+style_edition = "2024"
+
+max_width = 120
+
+#import and module
+group_imports = "StdExternalCrate"
+imports_granularity = "Crate"
+
+#control flow
+control_brace_style = "AlwaysSameLine"
+brace_style = "SameLineWhere"
+match_arm_blocks = true
+
+#comments
+normalize_comments = true
+
+#others
+reorder_impl_items = true
+fn_args_layout = "Compressed"
+format_macro_matchers = true
+
