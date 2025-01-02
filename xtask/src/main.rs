@@ -1,18 +1,26 @@
 mod build;
-
-use std::{env};
+use build::BuildArgs;
 use clap::{Parser, Subcommand};
 
-#[derive(Subcommand)]
-enum XtaskCmd {
-    build
-}
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
-struct Args {
+struct Cli {
     #[command(subcommand)]
-    cmd: XtaskCmd
+    command: Commands,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    /// build kernel and user Program
+    Build(BuildArgs)
 }
 
 fn main() {
+    #[allow(clippy::enmu_glob_use)]
+    use Commands::*;
+    match Cli::parse().command {
+        Build(args) => {
+            args.build();
+        }
+    }
 }
