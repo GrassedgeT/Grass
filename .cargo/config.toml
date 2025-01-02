@@ -1,2 +1,6 @@
 [alias]
 xtask = "run --package xtask --"
+xbuild = "xtask build"
+xrun = "xtask run"
+[build]
+target = "riscv64gc-unknown-none-elf"
