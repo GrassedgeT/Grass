@@ -13,11 +13,14 @@ edition = "2024"
 opt-level = 1
 panic = "abort"
 
-[profile.dev.package."*"]
-opt-level = 3
-debug = "limited"
-
 [profile.release]
 panic = "abort"
-codegen-units = 1
 lto = "fat"
+
+[profile.dev.package.kernel]
+
+
+[profile.release.package.kernel]
+incremental = true
+codegen-units = 1
+strip = "symbols"
