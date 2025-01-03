@@ -1,5 +1,5 @@
 [workspace]
-members = [
+members = [ "core/kernel",
     "xtask",
 ]
 resolver = "2"
@@ -11,11 +11,16 @@ edition = "2024"
 
 [profile.dev]
 opt-level = 1
-
-[profile.dev.package."*"]
-opt-level = 3
-debug = "limited"
+panic = "abort"
 
 [profile.release]
-codegen-units = 1
+panic = "abort"
 lto = "fat"
+
+[profile.dev.package.kernel]
+
+
+[profile.release.package.kernel]
+incremental = true
+codegen-units = 1
+strip = "symbols"

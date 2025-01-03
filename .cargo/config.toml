@@ -1,2 +1,6 @@
 [alias]
 xtask = "run --package xtask --"
+xbuild = "xtask build"
+qemu = "xtask qemu"
+debug = "xtask debug"
+

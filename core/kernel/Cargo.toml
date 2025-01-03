@@ -1,8 +1,9 @@
 [package]
-name = "xtask"
+name = "kernel"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
 
 [dependencies]
-clap = { version = "4.5", features = ["derive"] }
+
+
