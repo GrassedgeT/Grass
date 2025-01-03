@@ -1,8 +1,10 @@
 mod build;
-mod run;
+mod qemu;
+mod debug;
 
-use run::RunArgs;
+use qemu::QemuArgs;
 use build::BuildArgs;
+use debug::DebugArgs;
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
@@ -17,7 +19,9 @@ enum Commands {
     /// build kernel and user Program
     Build(BuildArgs),
     /// run kernel 
-    Run(RunArgs),
+    Qemu(QemuArgs),
+    ///debug kernel
+    Debug(DebugArgs),
 }
 
 fn main() {
@@ -25,6 +29,7 @@ fn main() {
     use Commands::*;
     match Cli::parse().command {
         Build(args) => args.build(),
-        Run(args) =>  args.run(),
+        Qemu(args) =>  args.run(),
+        Debug(args) => args.debug(),
     }
 }
