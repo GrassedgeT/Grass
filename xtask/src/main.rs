@@ -18,9 +18,9 @@ struct Cli {
 enum Commands {
     /// build kernel and user Program
     Build(BuildArgs),
-    /// run kernel 
+    /// run kernel in QEMU 
     Qemu(QemuArgs),
-    ///debug kernel
+    /// use gdb to debug kernel which is runing in QEMU
     Debug(DebugArgs),
 }
 
