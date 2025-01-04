@@ -23,13 +23,7 @@ impl Log for Logger {
             Level::Trace => "\x1b[37m", // white
         };
 
-        println!(
-            "{}[{:^5}]: {}\x1b[0m",
-            color,
-            record.level(),
-            record.args(),
-        );
-        
+        println!("{}[{:^5}]: {}\x1b[0m", color, record.level(), record.args(),);
     }
 
     fn flush(&self) {}

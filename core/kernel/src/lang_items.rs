@@ -1,4 +1,5 @@
 use core::panic::PanicInfo;
+
 use log::error;
 
 use crate::sbi::shutdown;
@@ -17,4 +18,3 @@ fn panic(info: &PanicInfo) -> ! {
     }
     shutdown(true)
 }
-

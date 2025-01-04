@@ -1,7 +1,8 @@
-use crate::sbi::console_write_char;
 use core::fmt::{self, Write};
 
-struct  StdOut;
+use crate::sbi::console_write_char;
+
+struct StdOut;
 
 impl Write for StdOut {
     fn write_str(&mut self, s: &str) -> fmt::Result {

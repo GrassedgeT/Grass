@@ -6,10 +6,11 @@
 #[macro_use]
 mod console;
 mod lang_items;
-mod sbi;
 mod logger;
+mod sbi;
 
 use core::arch::global_asm;
+
 use log::info;
 
 global_asm!(include_str!("boot/entry.asm"));
