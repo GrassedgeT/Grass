@@ -42,11 +42,11 @@ impl BuildArgs {
 
         args.extend(rustc_args);
 
-        print!("running cargo with args:{:#?}", args);
+        println!("running cargo with args:{:#?}", args);
         process::Command::new("cargo")
             .args(args)
             .status()
             .expect("failed to build kernel");
-        print!("build success");
+        println!("build success");
     }
 }
