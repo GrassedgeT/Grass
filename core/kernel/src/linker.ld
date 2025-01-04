@@ -20,14 +20,9 @@ SECTIONS
 
     .data ALIGN(4K) : {
         erodata = .;
+        *(.data.stack)
         sdata = .;
         *(.data .data.*)
-    }
-
-    .stack ALIGN(4K) : {
-        edata = .;
-        sstack = .;
-        *(.bss.stack)
     }
 
     .bss ALIGN(4K) : {
