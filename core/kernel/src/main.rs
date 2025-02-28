@@ -3,14 +3,17 @@
 #![no_std]
 #![no_main]
 
+#![feature(alloc_error_handler)]
+extern crate alloc;
 #[macro_use]
 mod console;
 mod lang_items;
 mod logger;
 mod sbi;
+pub mod memory;
+mod config;
 
 use core::arch::global_asm;
-
 use log::info;
 
 global_asm!(include_str!("boot/entry.asm"));
@@ -19,6 +22,9 @@ global_asm!(include_str!("boot/entry.asm"));
 pub fn rust_main() -> ! {
     clear_bss();
     logger::init();
+    unsafe {
+        memory::init();
+    }
     info!("Hello, world!");
     panic!("shutdown");
 }

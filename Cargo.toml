@@ -1,5 +1,6 @@
 [workspace]
-members = [ "core/kernel",
+members = [ 
+    "core/kernel",
     "xtask",
 ]
 resolver = "2"
