@@ -77,7 +77,7 @@ impl FrameAllocator for BuddyFrameAllocator{
 /// A structure to manage a single physframe
 #[derive(Debug)]
 pub struct Frame{
-    ppn: PhysPageNum,
+    pub ppn: PhysPageNum,
 }
 
 impl Frame {
@@ -105,8 +105,8 @@ impl Drop for Frame {
 /// it is a serial of frames beginning from ppn, num > 1
 #[derive(Debug)]
 pub struct Frames {
-    ppn: PhysPageNum,
-    num: usize,
+    pub ppn: PhysPageNum,
+    pub num: usize,
 }
 
 impl Frames {
