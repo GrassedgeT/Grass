@@ -4,6 +4,7 @@ mod address;
 mod global_allocator;
 mod frame_allocator;
 mod page_table;
+mod memory_space;
 
 pub unsafe fn init() {
     unsafe {
