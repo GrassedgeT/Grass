@@ -120,7 +120,7 @@ impl VirtPageNum {
     /// 0: level 2 index 
     /// 1: level 1 index
     /// 2: level 0 index
-    pub fn get_indexes(&self) -> [usize; 3] {
+    pub fn get_idxs(&self) -> [usize; 3] {
         let mut vpn = self.0;
         let mut indexes = [0; 3];
         for i in (0..3).rev() {

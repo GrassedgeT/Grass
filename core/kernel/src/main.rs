@@ -2,8 +2,8 @@
 
 #![no_std]
 #![no_main]
-
 #![feature(alloc_error_handler)]
+
 extern crate alloc;
 #[macro_use]
 extern crate lazy_static;
@@ -20,6 +20,7 @@ use core::arch::global_asm;
 use log::info;
 
 global_asm!(include_str!("boot/entry.asm"));
+
 /// Entry point of kernel
 #[unsafe(no_mangle)]
 pub fn rust_main() -> ! {

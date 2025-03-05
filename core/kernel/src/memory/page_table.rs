@@ -74,20 +74,75 @@ impl PageTable {
         Self { root_ppn, frames }
     }
 
-    /// Find the page table entry for the given virtual page number,
-    /// or create a new one if it doesn't exist
-    pub fn find_pte_or_create(&mut self, vpn: VirtPageNum) -> Option<&mut PageTableEntry>{
-        let indexes = vpn.get_indexes();
-        for (i, &index) in indexes.iter().enumerate() {
-            
+    /// Get the root physical page number from satp register
+    /// use this function when switching page table
+    /// this page table doesn't have any frames
+    pub fn from_satp(satp: usize) -> Self {
+        Self {
+            root_ppn: PhysPageNum::from(satp & ((1usize << 44) - 1)),
+            frames: Vec::new(),
         }
     }
 
 
-    pub fn map(&mut self, vpn: VirtPageNum, ppn: PhysPageNum, flags: PTEFlags) {
 
+    /// Find the page table entry for the given virtual page number,
+    /// or create a new one if it doesn't exist
+    pub fn find_pte_or_create(&mut self, vpn: VirtPageNum) -> Option<&mut PageTableEntry>{
+        let idxs = vpn.get_idxs();
+        let mut ppn = self.root_ppn;
+        let mut result = None;
+        for (i, &index) in idxs.iter().enumerate() {
+            let pte = &mut ppn.get_ptes_mut()[idxs[i]];
+            
+            // reach the leaf node
+            if i == 2 {
+                result = Some(pte);
+                break;
+            }
+
+            // if the next level page table(except the leaf node) doesn't exist, create it
+            if !pte.is_valid() {
+                let frame = Frame::alloc().expect("Frame alloc fail: Out of memory");
+                *pte = PageTableEntry::new(frame.ppn, PTEFlags::V);
+                self.frames.push(frame);
+            }
+            ppn = pte.ppn();
+        }
+        result
     }
-    pub fn unmap(&self, vpn: VirtPageNum){
 
+    /// Find the page table entry for the given virtual page number
+    /// or return None if it doesn't exist
+    pub fn find_pte(&self, vpn: VirtPageNum) -> Option<&mut PageTableEntry> {
+        let idxs = vpn.get_idxs();
+        let mut ppn = self.root_ppn;
+        let mut result = None;
+        for (i, &index) in idxs.iter().enumerate() {
+            let pte = &mut ppn.get_ptes_mut()[idxs[i]];
+            if !pte.is_valid() {
+                return None;
+            }
+            if i == 2 {
+                result = Some(pte);
+                break;
+            }
+            ppn = pte.ppn();
+        }
+        result
+    }
+
+    /// Map the given virtual page to the given physical page 
+    pub fn map(&mut self, vpn: VirtPageNum, ppn: PhysPageNum, flags: PTEFlags) {
+        let pte = self.find_pte_or_create(vpn).unwrap();
+        debug_assert!(!pte.is_valid(), "Mapping an already mapped virt page");
+        *pte = PageTableEntry::new(ppn, flags | PTEFlags::V);
+    }
+
+    /// Unmap the given virtual page 
+    pub fn unmap(&self, vpn: VirtPageNum){
+        let pte = self.find_pte(vpn).unwrap();
+        debug_assert!(pte.is_valid(), "Unmapping an unmapped virt page");
+        *pte = PageTableEntry::empty();
     }
 }
