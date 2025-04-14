@@ -14,29 +14,36 @@ SECTIONS
         *(.text.trampoline);
         . = ALIGN(4K);
         *(.text .text.*)
+        etext = .;
     }
 
     .rodata ALIGN(4K) : {
-        etext = .;
         srodata = .;
         *(.rodata .rodata.*)
+        erodata = .;
     }
 
     .data ALIGN(4K) : {
-        erodata = .;
-        *(.data.stack)
         sdata = .;
         *(.data .data.*)
+        edata = .;
+    }
+    
+    .stack : {
+        sstack = .;
+        *(.bss.stack)
+        estack = .;
     }
 
     .bss ALIGN(4K) : {
-        estack = .;
         sbss = .;
-        *(.sbss .bss .bss.*)
+        *(.bss .bss.*)
+        *(.sbss .sbss.*)
+        . = ALIGN(4K);
+        ebss = .;
     }
 
     . = ALIGN(4K);
-    ebss = .;
     ekernel = .;
     PROVIDE(end = .);
 }

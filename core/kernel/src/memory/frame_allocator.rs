@@ -75,7 +75,7 @@ impl FrameAllocator for BuddyFrameAllocator{
 }
 
 /// A structure to manage a single physframe
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Frame{
     pub ppn: PhysPageNum,
 }

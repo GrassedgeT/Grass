@@ -1,4 +1,6 @@
 //! Definition and conversion functions for physical and virtual addresses.
+use core::{iter::Step, ops::Add};
+
 use crate::config::{PAGE_SIZE, PAGE_SIZE_BITS};
 
 use super::page_table::{PageTable, PageTableEntry};
@@ -115,6 +117,29 @@ impl From<usize> for VirtAddr {
     }
 }
 
+impl Add<usize> for VirtAddr {
+    type Output = Self;
+
+    fn add(self, rhs: usize) -> Self::Output {
+        Self(self.0 + rhs)
+    }
+}
+
+impl Step for VirtPageNum {
+    fn steps_between(start: &Self, end: &Self) -> (usize, Option<usize>) {
+        let steps = end.0.checked_sub(start.0);
+        (steps.unwrap_or(0), steps)
+    }
+
+    fn forward_checked(start: Self, count: usize) -> Option<Self> {
+        Some(Self(start.0.checked_add(count)?))
+    }
+
+    fn backward_checked(start: Self, count: usize) -> Option<Self> {
+        Some(Self(start.0.checked_sub(count)?))
+    }
+}
+
 impl VirtPageNum {
     /// get the three indexes of the page table, 9 bits each 
     /// 0: level 2 index 
@@ -128,5 +153,20 @@ impl VirtPageNum {
             vpn >>= 9;
         }
         indexes
+    }
+}
+
+impl VirtAddr {
+    pub fn floor(&self) -> VirtPageNum {
+        VirtPageNum(self.0 >> PAGE_SIZE_BITS)
+    }
+    pub fn ceil(&self) -> VirtPageNum {
+        VirtPageNum((self.0 + PAGE_SIZE - 1) >> PAGE_SIZE_BITS)
+    }
+    pub fn page_offset(&self) -> usize {
+        self.0 & (PAGE_SIZE - 1)
+    }
+    pub fn aligned(&self) -> bool {
+        self.page_offset() == 0
     }
 }

@@ -1,6 +1,6 @@
 use core::str;
 
-use super::{address::{PhysPageNum, VirtPageNum}, frame_allocator::Frame};
+use super::{address::{PhysAddr, PhysPageNum, VirtAddr, VirtPageNum}, frame_allocator::Frame};
 use alloc::vec::Vec;
 use alloc::vec;
 use bitflags::*;
@@ -144,5 +144,33 @@ impl PageTable {
         let pte = self.find_pte(vpn).unwrap();
         debug_assert!(pte.is_valid(), "Unmapping an unmapped virt page");
         *pte = PageTableEntry::empty();
+    }
+
+    /// Translate the given virtual page number to the physical page number
+    /// !!! Only used in the Framed map type
+    pub fn vpn2ppn(&self, vpn: VirtPageNum) -> Option<PhysPageNum> {
+        let pte = self.find_pte(vpn)?;
+        if pte.is_valid() {
+            Some(pte.ppn())
+        } else {
+            None
+        }
+    }
+
+    /// Translate the given virtual address to the physical address
+    /// !!! Only used in the Framed map type
+    pub fn va2pa(&self, va: VirtAddr) -> Option<PhysAddr> {
+        self.find_pte(va.clone().floor()).map(|pte| {
+            let pa: PhysAddr = pte.ppn().into();
+            let offset = va.page_offset();
+            let pa_raw: usize = pa.into();
+            (pa_raw + offset).into()
+        })
+    }
+
+    /// Construct the satp token from the root physical page number,
+    /// default enable SV39 mode
+    pub fn satp_token(&self) -> usize {
+        8usize << 60 | self.root_ppn.0
     }
 }

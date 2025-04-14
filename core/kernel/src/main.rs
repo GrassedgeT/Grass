@@ -3,7 +3,7 @@
 #![no_std]
 #![no_main]
 #![feature(alloc_error_handler)]
-
+#![feature(step_trait)]
 extern crate alloc;
 #[macro_use]
 extern crate lazy_static;
