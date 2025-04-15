@@ -1,9 +1,12 @@
+use alloc::{vec, vec::Vec};
 use core::str;
 
-use super::{address::{PhysAddr, PhysPageNum, VirtAddr, VirtPageNum}, frame_allocator::Frame};
-use alloc::vec::Vec;
-use alloc::vec;
 use bitflags::*;
+
+use super::{
+    address::{PhysAddr, PhysPageNum, VirtAddr, VirtPageNum},
+    frame_allocator::Frame,
+};
 
 bitflags! {
     #[derive(Debug)]
@@ -23,7 +26,6 @@ impl PartialEq for PTEFlags {
     fn eq(&self, other: &Self) -> bool {
         self.bits() == other.bits()
     }
-    
 }
 
 #[derive(Clone, Copy)]
@@ -63,7 +65,7 @@ impl PageTableEntry {
 
 pub struct PageTable {
     root_ppn: PhysPageNum,
-    frames: Vec<Frame>
+    frames: Vec<Frame>,
 }
 
 impl PageTable {
@@ -85,17 +87,15 @@ impl PageTable {
         }
     }
 
-
-
     /// Find the page table entry for the given virtual page number,
     /// or create a new one if it doesn't exist
-    pub fn find_pte_or_create(&mut self, vpn: VirtPageNum) -> Option<&mut PageTableEntry>{
+    pub fn find_pte_or_create(&mut self, vpn: VirtPageNum) -> Option<&mut PageTableEntry> {
         let idxs = vpn.get_idxs();
         let mut ppn = self.root_ppn;
         let mut result = None;
         for (i, &index) in idxs.iter().enumerate() {
             let pte = &mut ppn.get_ptes_mut()[index];
-            
+
             // reach the leaf node
             if i == 2 {
                 result = Some(pte);
@@ -133,15 +133,15 @@ impl PageTable {
         result
     }
 
-    /// Map the given virtual page to the given physical page 
+    /// Map the given virtual page to the given physical page
     pub fn map(&mut self, vpn: VirtPageNum, ppn: PhysPageNum, flags: PTEFlags) {
         let pte = self.find_pte_or_create(vpn).unwrap();
         debug_assert!(!pte.is_valid(), "Mapping an already mapped virt page: {:#x?}", vpn);
         *pte = PageTableEntry::new(ppn, flags | PTEFlags::V);
     }
 
-    /// Unmap the given virtual page 
-    pub fn unmap(&self, vpn: VirtPageNum){
+    /// Unmap the given virtual page
+    pub fn unmap(&self, vpn: VirtPageNum) {
         let pte = self.find_pte(vpn).unwrap();
         debug_assert!(pte.is_valid(), "Unmapping an unmapped virt page");
         *pte = PageTableEntry::empty();
@@ -151,11 +151,7 @@ impl PageTable {
     /// !!! Only used in the Framed map type
     pub fn vpn2ppn(&self, vpn: VirtPageNum) -> Option<PhysPageNum> {
         let pte = self.find_pte(vpn)?;
-        if pte.is_valid() {
-            Some(pte.ppn())
-        } else {
-            None
-        }
+        if pte.is_valid() { Some(pte.ppn()) } else { None }
     }
 
     /// Translate the given virtual address to the physical address

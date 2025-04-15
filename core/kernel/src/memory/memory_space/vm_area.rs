@@ -1,13 +1,19 @@
 //! This is virtual memory area module.
 //! It defines the VmArea structure and function to manage it.
 
+use alloc::collections::btree_map::BTreeMap;
 use core::ops::Range;
 
-use alloc::collections::btree_map::BTreeMap;
 use bitflags::bitflags;
 
-use crate::{config::PAGE_SIZE, memory::{address::{PhysPageNum, VirtAddr, VirtPageNum}, frame_allocator::Frame, page_table::{self, PTEFlags, PageTable}}};
-
+use crate::{
+    config::PAGE_SIZE,
+    memory::{
+        address::{PhysPageNum, VirtAddr, VirtPageNum},
+        frame_allocator::Frame,
+        page_table::{self, PTEFlags, PageTable},
+    },
+};
 
 bitflags! {
     /// Map permission flags
@@ -26,7 +32,7 @@ bitflags! {
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum MapType {
     Direct,
-    Framed
+    Framed,
 }
 
 /// Virtual memory area
@@ -38,16 +44,11 @@ pub struct VmArea {
     map_type: MapType,
 }
 
-impl VmArea{
-    pub fn new(
-        start_va: VirtAddr,
-        end_va: VirtAddr,
-        map_type: MapType,
-        perm: MapPermission,
-    ) -> Self {
+impl VmArea {
+    pub fn new(start_va: VirtAddr, end_va: VirtAddr, map_type: MapType, perm: MapPermission) -> Self {
         let start_vpn = start_va.floor();
         let end_vpn = end_va.ceil();
-        Self{
+        Self {
             vpns: start_vpn..end_vpn,
             frames_map: BTreeMap::new(),
             perm,
@@ -64,9 +65,9 @@ impl VmArea{
     }
 
     pub fn from_another(another: &VmArea) -> Self {
-        Self{
+        Self {
             vpns: another.vpns.clone(),
-            frames_map: BTreeMap::new(), 
+            frames_map: BTreeMap::new(),
             perm: another.perm.clone(),
             map_type: another.map_type.clone(),
         }
@@ -89,7 +90,7 @@ impl VmArea{
     }
 
     pub fn map(&mut self, page_table: &mut PageTable) {
-        for vpn in self.vpns.clone(){
+        for vpn in self.vpns.clone() {
             self.map_one(page_table, vpn);
         }
     }
@@ -120,10 +121,7 @@ impl VmArea{
         let len = data.len();
         loop {
             let src = &data[start..len.min(start + PAGE_SIZE)];
-            let dst = &mut page_table
-                .vpn2ppn(current_vpn)
-                .unwrap()
-                .get_bytes_mut()[..src.len()];
+            let dst = &mut page_table.vpn2ppn(current_vpn).unwrap().get_bytes_mut()[..src.len()];
             dst.copy_from_slice(src);
             start += PAGE_SIZE;
             if start >= len {

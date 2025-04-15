@@ -1,21 +1,22 @@
-//! This is the memory space module. 
+//! This is the memory space module.
 //! It contains MemorySpace assoicated items.
 
-use core::arch::asm;
-use core::mem;
+use alloc::{collections::btree_map::BTreeMap, sync::Arc};
+use core::{arch::asm, mem};
 
-use alloc::{collections::btree_map::BTreeMap};
-use alloc::sync::Arc;
 use riscv::register::satp::{self, Satp};
 use vm_area::{MapPermission, VmArea};
 use xmas_elf::program;
 
-use super::address::{PhysAddr, VirtAddr};
-use super::page_table::PTEFlags;
-use super::{address::VirtPageNum, page_table::PageTable};
-use crate::board::MMIO;
-use crate::config::{MEMORY_END, PAGE_SIZE, TRAMPOLINE};
-use crate::sync::safe_cell::SafeCell;
+use super::{
+    address::{PhysAddr, VirtAddr, VirtPageNum},
+    page_table::{PTEFlags, PageTable},
+};
+use crate::{
+    board::MMIO,
+    config::{MEMORY_END, PAGE_SIZE, TRAMPOLINE},
+    sync::safe_cell::SafeCell,
+};
 pub mod vm_area;
 
 unsafe extern "C" {
@@ -39,7 +40,7 @@ lazy_static! {
         unsafe {
             Arc::new(SafeCell::new(MemorySpace::new_kernel()))
         }
-    }; 
+    };
 }
 
 /// Get the kernel memory space's satp token
@@ -55,7 +56,6 @@ pub struct MemorySpace {
 }
 
 impl MemorySpace {
-    
     /// Create a new empty memory space
     pub fn new_bare() -> Self {
         Self {
@@ -71,16 +71,8 @@ impl MemorySpace {
 
     /// Assume that no conflict
     // TODO! check the conflict
-    pub fn insert_framed_area(
-        &mut self, 
-        start_va: VirtAddr, 
-        end_va: VirtAddr, 
-        perm: MapPermission
-    ) {
-        self.push(
-            VmArea::new(start_va, end_va, vm_area::MapType::Framed, perm), 
-            None
-        );
+    pub fn insert_framed_area(&mut self, start_va: VirtAddr, end_va: VirtAddr, perm: MapPermission) {
+        self.push(VmArea::new(start_va, end_va, vm_area::MapType::Framed, perm), None);
     }
 
     pub fn remove_area_with_start_vpn(&mut self, start_vpn: VirtPageNum) {
@@ -104,9 +96,9 @@ impl MemorySpace {
     /// Mention that the trampoline page is not collected by areas
     pub fn map_trampoline(&mut self) {
         self.page_table.map(
-            VirtAddr::from(TRAMPOLINE).into(), 
-            PhysAddr::from(strampoline as usize).into(), 
-            PTEFlags::R | PTEFlags::X
+            VirtAddr::from(TRAMPOLINE).into(),
+            PhysAddr::from(strampoline as usize).into(),
+            PTEFlags::R | PTEFlags::X,
         );
     }
 
@@ -126,75 +118,75 @@ impl MemorySpace {
         println!("mapping text section");
         kernel_space.push(
             VmArea::new(
-                VirtAddr::from(stext as usize), 
-                VirtAddr::from(etext as usize), 
-                vm_area::MapType::Direct, 
-                MapPermission::R | MapPermission::X
-            ), 
-            None
+                VirtAddr::from(stext as usize),
+                VirtAddr::from(etext as usize),
+                vm_area::MapType::Direct,
+                MapPermission::R | MapPermission::X,
+            ),
+            None,
         );
         println!("mapping rodata section");
         kernel_space.push(
             VmArea::new(
-                VirtAddr::from(srodata as usize), 
-                VirtAddr::from(erodata as usize), 
-                vm_area::MapType::Direct, 
-                MapPermission::R
-            ), 
-            None
-        ); 
+                VirtAddr::from(srodata as usize),
+                VirtAddr::from(erodata as usize),
+                vm_area::MapType::Direct,
+                MapPermission::R,
+            ),
+            None,
+        );
 
         println!("mapping data section");
         kernel_space.push(
             VmArea::new(
-                VirtAddr::from(sdata as usize), 
-                VirtAddr::from(edata as usize), 
-                vm_area::MapType::Direct, 
-                MapPermission::R | MapPermission::W
-            ), 
-            None
+                VirtAddr::from(sdata as usize),
+                VirtAddr::from(edata as usize),
+                vm_area::MapType::Direct,
+                MapPermission::R | MapPermission::W,
+            ),
+            None,
         );
         println!("mapping stack section");
         kernel_space.push(
             VmArea::new(
-                VirtAddr::from(sstack as usize), 
-                VirtAddr::from(estack as usize), 
-                vm_area::MapType::Direct, 
-                MapPermission::R | MapPermission::W
-            ), 
-            None
+                VirtAddr::from(sstack as usize),
+                VirtAddr::from(estack as usize),
+                vm_area::MapType::Direct,
+                MapPermission::R | MapPermission::W,
+            ),
+            None,
         );
         println!("mapping bss section");
         kernel_space.push(
             VmArea::new(
-                VirtAddr::from(sbss as usize), 
-                VirtAddr::from(ebss as usize), 
-                vm_area::MapType::Direct, 
-                MapPermission::R | MapPermission::W
-            ), 
-            None
+                VirtAddr::from(sbss as usize),
+                VirtAddr::from(ebss as usize),
+                vm_area::MapType::Direct,
+                MapPermission::R | MapPermission::W,
+            ),
+            None,
         );
         // Map whole physical memory make the kernel can access all physical memory directly
         println!("mapping physical memory");
         kernel_space.push(
             VmArea::new(
-                VirtAddr::from(ekernel as usize), 
-                VirtAddr::from(MEMORY_END), 
-                vm_area::MapType::Direct, 
-                MapPermission::R | MapPermission::W
-            ), 
-            None
+                VirtAddr::from(ekernel as usize),
+                VirtAddr::from(MEMORY_END),
+                vm_area::MapType::Direct,
+                MapPermission::R | MapPermission::W,
+            ),
+            None,
         );
         println!("mapping memory-mapped registers");
         for pair in MMIO {
             kernel_space.push(
                 VmArea::new(
-                    VirtAddr::from((*pair).0), 
-                    VirtAddr::from((*pair).0 + (*pair).1), 
-                    vm_area::MapType::Direct, 
-                    MapPermission::R | MapPermission::W
-                ), 
-                None
+                    VirtAddr::from((*pair).0),
+                    VirtAddr::from((*pair).0 + (*pair).1),
+                    vm_area::MapType::Direct,
+                    MapPermission::R | MapPermission::W,
+                ),
+                None,
             );
         }
         kernel_space
@@ -229,16 +221,11 @@ impl MemorySpace {
                         if ph_flags.is_execute() {
                             map_perm |= MapPermission::X;
                         }
-                        let area = VmArea::new(
-                            start_va, 
-                            end_va, 
-                            vm_area::MapType::Framed, 
-                            map_perm
-                        );
+                        let area = VmArea::new(start_va, end_va, vm_area::MapType::Framed, map_perm);
                         max_end_vpn = area.end_vpn();
                         memory_set.push(
                             area,
-                            Some(&elf.input[ph.offset() as usize..(ph.offset() + ph.file_size()) as usize])
+                            Some(&elf.input[ph.offset() as usize..(ph.offset() + ph.file_size()) as usize]),
                         );
                     }
                     _ => {}
@@ -262,12 +249,10 @@ impl MemorySpace {
         for area in user_space.areas.values() {
             let new_area = VmArea::from_another(area);
             memory_set.push(new_area, None);
-            for vpn in area.start_vpn()..area.end_vpn(){
-                let src_ppn = user_space.page_table.vpn2ppn(vpn).unwrap();  
+            for vpn in area.start_vpn()..area.end_vpn() {
+                let src_ppn = user_space.page_table.vpn2ppn(vpn).unwrap();
                 let dst_ppn = memory_set.page_table.vpn2ppn(vpn).unwrap();
-                dst_ppn
-                    .get_bytes_mut()
-                    .copy_from_slice(&src_ppn.get_bytes_mut());
+                dst_ppn.get_bytes_mut().copy_from_slice(&src_ppn.get_bytes_mut());
             }
         }
         memory_set
@@ -289,12 +274,11 @@ impl MemorySpace {
 
     pub fn kernel_copy() -> Self {
         let areas = KERNEL_SPACE.exclusive_access().areas.clone();
-        Self { 
+        Self {
             page_table: PageTable::from_satp(kernel_satp()),
-            areas: areas
+            areas: areas,
         }
     }
-
 }
 
 #[allow(unused)]
@@ -304,27 +288,15 @@ pub fn remap_test() {
     let mid_rodata: VirtAddr = ((srodata as usize + erodata as usize) / 2).into();
     let mid_data: VirtAddr = ((sdata as usize + edata as usize) / 2).into();
     assert_eq!(
-        !kernel_space
-            .page_table
-            .find_pte(mid_text.floor())
-            .unwrap()
-            .flags() & PTEFlags::W,
+        !kernel_space.page_table.find_pte(mid_text.floor()).unwrap().flags() & PTEFlags::W,
         PTEFlags::W
     );
     assert_eq!(
-        !kernel_space
-            .page_table
-            .find_pte(mid_rodata.floor())
-            .unwrap()
-            .flags() & PTEFlags::W,
+        !kernel_space.page_table.find_pte(mid_rodata.floor()).unwrap().flags() & PTEFlags::W,
         PTEFlags::W
     );
     assert_eq!(
-        !kernel_space
-            .page_table
-            .find_pte(mid_data.floor())
-            .unwrap()
-            .flags() & PTEFlags::X,
+        !kernel_space.page_table.find_pte(mid_data.floor()).unwrap().flags() & PTEFlags::X,
         PTEFlags::X
     );
     println!("remap_test passed!");

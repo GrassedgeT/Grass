@@ -1,9 +1,8 @@
 //! Definition and conversion functions for physical and virtual addresses.
 use core::{iter::Step, ops::Add};
 
-use crate::config::{PAGE_SIZE, PAGE_SIZE_BITS};
-
 use super::page_table::{PageTable, PageTableEntry};
+use crate::config::{PAGE_SIZE, PAGE_SIZE_BITS};
 
 const PA_WIDTH_SV39: usize = 56;
 const VA_WIDTH_SV39: usize = 39;
@@ -64,7 +63,7 @@ impl PhysAddr {
 }
 
 impl PhysPageNum {
-    /// Return a array of PageTableEntry in the page 
+    /// Return a array of PageTableEntry in the page
     pub fn get_ptes_mut(&self) -> &'static mut [PageTableEntry] {
         let phys_addr: PhysAddr = self.clone().into();
         unsafe {
@@ -72,24 +71,19 @@ impl PhysPageNum {
             core::slice::from_raw_parts_mut(phys_addr.0 as *mut PageTableEntry, PAGE_SIZE / 8)
         }
     }
-    
+
     /// Return a array of u8 in the page
     pub fn get_bytes_mut(&self) -> &'static mut [u8] {
         let phys_addr: PhysAddr = self.clone().into();
-        unsafe {
-            core::slice::from_raw_parts_mut(phys_addr.0 as *mut u8, PAGE_SIZE)
-        }
+        unsafe { core::slice::from_raw_parts_mut(phys_addr.0 as *mut u8, PAGE_SIZE) }
     }
-    
+
     /// Return a mutable reference of a specific type in the page
     pub fn get_mut<T>(&self) -> &'static mut T {
         let phys_addr: PhysAddr = self.clone().into();
-        unsafe {
-            (phys_addr.0 as *mut T).as_mut().unwrap()
-        }
+        unsafe { (phys_addr.0 as *mut T).as_mut().unwrap() }
     }
 }
-
 
 impl From<PhysAddr> for PhysPageNum {
     fn from(phys_addr: PhysAddr) -> Self {
@@ -102,7 +96,6 @@ impl From<PhysPageNum> for PhysAddr {
         Self(ppn.0 << PAGE_SIZE_BITS)
     }
 }
-
 
 // "Virt" asociated implement
 impl From<VirtAddr> for usize {
@@ -154,8 +147,8 @@ impl Step for VirtPageNum {
 }
 
 impl VirtPageNum {
-    /// get the three indexes of the page table, 9 bits each 
-    /// 0: level 2 index 
+    /// get the three indexes of the page table, 9 bits each
+    /// 0: level 2 index
     /// 1: level 1 index
     /// 2: level 0 index
     pub fn get_idxs(&self) -> [usize; 3] {
@@ -173,12 +166,15 @@ impl VirtAddr {
     pub fn floor(&self) -> VirtPageNum {
         VirtPageNum(self.0 >> PAGE_SIZE_BITS)
     }
+
     pub fn ceil(&self) -> VirtPageNum {
         VirtPageNum((self.0 + PAGE_SIZE - 1) >> PAGE_SIZE_BITS)
     }
+
     pub fn page_offset(&self) -> usize {
         self.0 & (PAGE_SIZE - 1)
     }
+
     pub fn aligned(&self) -> bool {
         self.page_offset() == 0
     }

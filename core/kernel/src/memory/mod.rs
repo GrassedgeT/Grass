@@ -1,11 +1,11 @@
 use log::info;
-use memory_space::{remap_test, KERNEL_SPACE};
+use memory_space::{KERNEL_SPACE, remap_test};
 
 mod address;
-mod global_allocator;
 mod frame_allocator;
-mod page_table;
+mod global_allocator;
 mod memory_space;
+mod page_table;
 
 pub unsafe fn init() {
     unsafe {

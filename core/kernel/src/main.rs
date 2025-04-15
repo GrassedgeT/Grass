@@ -9,16 +9,17 @@ extern crate alloc;
 extern crate lazy_static;
 #[macro_use]
 mod console;
+#[path = "boards/qemu.rs"]
+mod board;
+mod config;
 mod lang_items;
 mod logger;
+pub mod memory;
 mod sbi;
 mod sync;
-pub mod memory;
-mod config;
-#[path ="boards/qemu.rs"]
-mod board;
 
 use core::arch::global_asm;
+
 use log::info;
 
 global_asm!(include_str!("boot/entry.asm"));

@@ -1,5 +1,6 @@
 use buddy_system_allocator::LockedHeap;
 use log::info;
+
 use crate::config::KERNEL_HEAP_SIZE;
 
 /// Global allocator for the kernel heap.
@@ -17,19 +18,16 @@ static mut HEAP: [u8; KERNEL_HEAP_SIZE] = [0; KERNEL_HEAP_SIZE];
 #[allow(static_mut_refs)]
 pub unsafe fn init_heap() {
     unsafe {
-        HEAP_ALLOCATOR
-                    .lock()
-                    .init(HEAP.as_ptr() as usize, KERNEL_HEAP_SIZE);
+        HEAP_ALLOCATOR.lock().init(HEAP.as_ptr() as usize, KERNEL_HEAP_SIZE);
         test_heap();
     }
 }
 
 #[allow(unused)]
-fn test_heap(){
+fn test_heap() {
     info!("Testing heap...");
-    use alloc::boxed::Box;
-    use alloc::vec::Vec;
-    unsafe extern "C"{
+    use alloc::{boxed::Box, vec::Vec};
+    unsafe extern "C" {
         fn sbss();
         fn ebss();
     }
@@ -39,14 +37,13 @@ fn test_heap(){
     assert!(bss_range.contains(&(a.as_ref() as *const _ as usize)));
     drop(a);
     let mut v: Vec<usize> = Vec::new();
-    for i in 0..100{
+    for i in 0..100 {
         v.push(i);
     }
-    for (i, &val) in v.iter().enumerate(){
+    for (i, &val) in v.iter().enumerate() {
         assert_eq!(val, i);
     }
     assert!(bss_range.contains(&(v.as_ptr() as usize)));
     drop(v);
     info!("Heap test passed!");
 }
-

@@ -15,6 +15,7 @@ impl<T> SafeCell<T> {
             inner: RefCell::new(value),
         }
     }
+
     pub fn exclusive_access(&self) -> RefMut<'_, T> {
         self.inner.borrow_mut()
     }
