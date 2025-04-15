@@ -6,6 +6,7 @@ use alloc::vec;
 use bitflags::*;
 
 bitflags! {
+    #[derive(Debug)]
     pub struct PTEFlags: u8 {
         const V = 1 << 0; // Valid
         const R = 1 << 1; // Readable
@@ -93,7 +94,7 @@ impl PageTable {
         let mut ppn = self.root_ppn;
         let mut result = None;
         for (i, &index) in idxs.iter().enumerate() {
-            let pte = &mut ppn.get_ptes_mut()[idxs[i]];
+            let pte = &mut ppn.get_ptes_mut()[index];
             
             // reach the leaf node
             if i == 2 {
@@ -135,7 +136,7 @@ impl PageTable {
     /// Map the given virtual page to the given physical page 
     pub fn map(&mut self, vpn: VirtPageNum, ppn: PhysPageNum, flags: PTEFlags) {
         let pte = self.find_pte_or_create(vpn).unwrap();
-        debug_assert!(!pte.is_valid(), "Mapping an already mapped virt page");
+        debug_assert!(!pte.is_valid(), "Mapping an already mapped virt page: {:#x?}", vpn);
         *pte = PageTableEntry::new(ppn, flags | PTEFlags::V);
     }
 

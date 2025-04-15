@@ -15,6 +15,8 @@ mod sbi;
 mod sync;
 pub mod memory;
 mod config;
+#[path ="boards/qemu.rs"]
+mod board;
 
 use core::arch::global_asm;
 use log::info;

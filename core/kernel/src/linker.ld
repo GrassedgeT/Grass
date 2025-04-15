@@ -7,7 +7,7 @@ SECTIONS
     . = BASE_ADDRESS;
 
     .text : {
-        .stext = .;
+        stext = .;
         *(.text.entry)
         . = ALIGN(4K);
         strampoline = .;
@@ -29,7 +29,7 @@ SECTIONS
         edata = .;
     }
     
-    .stack : {
+    .stack ALIGN(4K) : {
         sstack = .;
         *(.bss.stack)
         estack = .;

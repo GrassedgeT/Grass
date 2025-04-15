@@ -1,4 +1,5 @@
 use log::info;
+use memory_space::{remap_test, KERNEL_SPACE};
 
 mod address;
 mod global_allocator;
@@ -12,5 +13,9 @@ pub unsafe fn init() {
         global_allocator::init_heap();
         info!("Initializing Frame allocator...");
         frame_allocator::init_frame_allocator();
+        info!("Initializing Kernel memory space...");
+        KERNEL_SPACE.exclusive_access().activate();
+        info!("test kernel space");
+        remap_test();
     }
 }

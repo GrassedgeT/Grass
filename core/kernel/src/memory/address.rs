@@ -69,7 +69,7 @@ impl PhysPageNum {
         let phys_addr: PhysAddr = self.clone().into();
         unsafe {
             // 64 bytes per PageTableEntry
-            core::slice::from_raw_parts_mut(phys_addr.0 as *mut PageTableEntry, PAGE_SIZE / 64)
+            core::slice::from_raw_parts_mut(phys_addr.0 as *mut PageTableEntry, PAGE_SIZE / 8)
         }
     }
     
@@ -122,6 +122,19 @@ impl Add<usize> for VirtAddr {
 
     fn add(self, rhs: usize) -> Self::Output {
         Self(self.0 + rhs)
+    }
+}
+
+impl From<VirtAddr> for VirtPageNum {
+    fn from(virt_addr: VirtAddr) -> Self {
+        assert_eq!(virt_addr.page_offset(), 0);
+        virt_addr.floor()
+    }
+}
+
+impl From<VirtPageNum> for VirtAddr {
+    fn from(vpn: VirtPageNum) -> Self {
+        Self(vpn.0 << PAGE_SIZE_BITS)
     }
 }
 
